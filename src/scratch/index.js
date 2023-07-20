@@ -1,8 +1,8 @@
-import React, {useEffect, useReducer} from 'react';
+import React, {useEffect} from 'react';
 import { createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 
-const alarmMachine = {
+const alarmMachine = createMachine({
     initial: 'inactive',
     states: {
         inactive: {
@@ -22,18 +22,17 @@ const alarmMachine = {
             },
         },
     },
-};
-const alarmReducer = (state, event) => {
-    return alarmMachine.states[state].on[event.type] || state;
-};
+});
 
 export const ScratchApp = () => {
-   const [status, dispatch] = useReducer(alarmReducer, alarmMachine.initial)
+   const [state, send] = useMachine(alarmMachine);
+
+   const status = state.value;
 
     useEffect(() => {
         if(status === 'pending') {
             const timer = setTimeout(() => {
-                dispatch({type: 'SUCCESS'})
+                send('SUCCESS')
             }, 1500);
             return () => {
                 clearTimeout(timer);
@@ -50,7 +49,7 @@ export const ScratchApp = () => {
             minute: '2-digit',
           })}
         </div>
-        <div className="alarmToggle" style={{opacity: status === "pending" ? .5 : 1}} data-active={status === 'active' ? 'true' : undefined} onClick={() => dispatch({type: 'TOGGLE'})}></div>
+        <div className="alarmToggle" style={{opacity: status === "pending" ? .5 : 1}} data-active={status === 'active' ? 'true' : undefined} onClick={() => send( 'TOGGLE')}></div>
       </div>
     </div>
   );
